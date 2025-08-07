@@ -7,9 +7,13 @@ type Card = {
   suit: string;
   rank: string;
   value: number;
+  realValue: number;
 }
 
 type Hand = {
+  spades: Card[];
+  spadesString: string;
+  spadesCount: number;
   hearts: Card[];
   heartsString: string;
   heartsCount: number;
@@ -19,20 +23,39 @@ type Hand = {
   clubs: Card[];
   clubsString: string;
   clubsCount: number;
-  spades: Card[];
-  spadesString: string;
-  spadesCount: number;
+  allCards: Card[];
+  points: number;
 }
 
 type FormatedHand = {
+  spadesString: string;
+  spadesCount: number;
   heartsString: string;
   heartsCount: number;
   diamondsString: string;
   diamondsCount: number;
   clubsString: string;
   clubsCount: number;
-  spadesString: string;
-  spadesCount: number;
+  points: number;
+}
+
+type Limits = {
+  spades?: { min?: number, max?: number },
+  hearts?: { min?: number, max?: number },
+  diamonds?: { min?: number, max?: number },
+  clubs?: { min?: number, max?: number },
+  points?: { min?: number, max?: number },
+}
+
+type Table = {
+  formatedHand1: Hand;
+  formatedHand2: Hand;
+  formatedHand3: Hand;
+  formatedHand4: Hand;
+  firstRow: string;
+  secondRow: string;
+  thirdRow: string;
+  fullRow: string;
 }
 
 @Component({
@@ -44,106 +67,177 @@ type FormatedHand = {
 export class App {
   protected title = 'card-game-3';
 
+  public listTables: Table[] = [];
+
   public suits = [
     { suit: 'spades', symbol: '♠' },
     { suit: 'hearts', symbol: '♥' },
     { suit: 'diamonds', symbol: '♦' },
-    { suit: 'clubs', symbol: '♣' }
+    { suit: 'clubs', symbol: '♣' },
+    { suit: 'points', symbol: '•' }
   ];
 
   public rankValueCards = [
-    { rank: "A", value: 14 },
-    { rank: "K", value: 13 },
-    { rank: "Q", value: 12 },
-    { rank: "J", value: 11 },
-    { rank: "10", value: 10 },
-    { rank: "9", value: 9 },
-    { rank: "8", value: 8 },
-    { rank: "7", value: 7 },
-    { rank: "6", value: 6 },
-    { rank: "5", value: 5 },
-    { rank: "4", value: 4 },
-    { rank: "3", value: 3 },
-    { rank: "2", value: 2 },
+    { rank: "A", value: 14, realValue: 4 },
+    { rank: "K", value: 13, realValue: 3 },
+    { rank: "Q", value: 12, realValue: 2 },
+    { rank: "J", value: 11, realValue: 1 },
+    { rank: "10", value: 10, realValue: 0 },
+    { rank: "9", value: 9, realValue: 0 },
+    { rank: "8", value: 8, realValue: 0 },
+    { rank: "7", value: 7, realValue: 0 },
+    { rank: "6", value: 6, realValue: 0 },
+    { rank: "5", value: 5, realValue: 0 },
+    { rank: "4", value: 4, realValue: 0 },
+    { rank: "3", value: 3, realValue: 0 },
+    { rank: "2", value: 2, realValue: 0 },
   ];
 
 
-  public cards: Card[] = [
-    { suit: this.suits[0].symbol, rank: this.rankValueCards[0].rank, value: this.rankValueCards[0].value },
-    { suit: this.suits[0].symbol, rank: this.rankValueCards[1].rank, value: this.rankValueCards[1].value },
-    { suit: this.suits[0].symbol, rank: this.rankValueCards[2].rank, value: this.rankValueCards[2].value },
-    { suit: this.suits[0].symbol, rank: this.rankValueCards[3].rank, value: this.rankValueCards[3].value },
-    { suit: this.suits[0].symbol, rank: this.rankValueCards[4].rank, value: this.rankValueCards[4].value },
-    { suit: this.suits[0].symbol, rank: this.rankValueCards[5].rank, value: this.rankValueCards[5].value },
-    { suit: this.suits[0].symbol, rank: this.rankValueCards[6].rank, value: this.rankValueCards[6].value },
-    { suit: this.suits[0].symbol, rank: this.rankValueCards[7].rank, value: this.rankValueCards[7].value },
-    { suit: this.suits[0].symbol, rank: this.rankValueCards[8].rank, value: this.rankValueCards[8].value },
-    { suit: this.suits[0].symbol, rank: this.rankValueCards[9].rank, value: this.rankValueCards[9].value },
-    { suit: this.suits[0].symbol, rank: this.rankValueCards[10].rank, value: this.rankValueCards[10].value },
-    { suit: this.suits[0].symbol, rank: this.rankValueCards[11].rank, value: this.rankValueCards[11].value },
-    { suit: this.suits[0].symbol, rank: this.rankValueCards[12].rank, value: this.rankValueCards[12].value },
-
-    { suit: this.suits[1].symbol, rank: this.rankValueCards[0].rank, value: this.rankValueCards[0].value },
-    { suit: this.suits[1].symbol, rank: this.rankValueCards[1].rank, value: this.rankValueCards[1].value },
-    { suit: this.suits[1].symbol, rank: this.rankValueCards[2].rank, value: this.rankValueCards[2].value },
-    { suit: this.suits[1].symbol, rank: this.rankValueCards[3].rank, value: this.rankValueCards[3].value },
-    { suit: this.suits[1].symbol, rank: this.rankValueCards[4].rank, value: this.rankValueCards[4].value },
-    { suit: this.suits[1].symbol, rank: this.rankValueCards[5].rank, value: this.rankValueCards[5].value },
-    { suit: this.suits[1].symbol, rank: this.rankValueCards[6].rank, value: this.rankValueCards[6].value },
-    { suit: this.suits[1].symbol, rank: this.rankValueCards[7].rank, value: this.rankValueCards[7].value },
-    { suit: this.suits[1].symbol, rank: this.rankValueCards[8].rank, value: this.rankValueCards[8].value },
-    { suit: this.suits[1].symbol, rank: this.rankValueCards[9].rank, value: this.rankValueCards[9].value },
-    { suit: this.suits[1].symbol, rank: this.rankValueCards[10].rank, value: this.rankValueCards[10].value },
-    { suit: this.suits[1].symbol, rank: this.rankValueCards[11].rank, value: this.rankValueCards[11].value },
-    { suit: this.suits[1].symbol, rank: this.rankValueCards[12].rank, value: this.rankValueCards[12].value },
-
-    { suit: this.suits[2].symbol, rank: this.rankValueCards[0].rank, value: this.rankValueCards[0].value },
-    { suit: this.suits[2].symbol, rank: this.rankValueCards[1].rank, value: this.rankValueCards[1].value },
-    { suit: this.suits[2].symbol, rank: this.rankValueCards[2].rank, value: this.rankValueCards[2].value },
-    { suit: this.suits[2].symbol, rank: this.rankValueCards[3].rank, value: this.rankValueCards[3].value },
-    { suit: this.suits[2].symbol, rank: this.rankValueCards[4].rank, value: this.rankValueCards[4].value },
-    { suit: this.suits[2].symbol, rank: this.rankValueCards[5].rank, value: this.rankValueCards[5].value },
-    { suit: this.suits[2].symbol, rank: this.rankValueCards[6].rank, value: this.rankValueCards[6].value },
-    { suit: this.suits[2].symbol, rank: this.rankValueCards[7].rank, value: this.rankValueCards[7].value },
-    { suit: this.suits[2].symbol, rank: this.rankValueCards[8].rank, value: this.rankValueCards[8].value },
-    { suit: this.suits[2].symbol, rank: this.rankValueCards[9].rank, value: this.rankValueCards[9].value },
-    { suit: this.suits[2].symbol, rank: this.rankValueCards[10].rank, value: this.rankValueCards[10].value },
-    { suit: this.suits[2].symbol, rank: this.rankValueCards[11].rank, value: this.rankValueCards[11].value },
-    { suit: this.suits[2].symbol, rank: this.rankValueCards[12].rank, value: this.rankValueCards[12].value },
-
-    { suit: this.suits[3].symbol, rank: this.rankValueCards[0].rank, value: this.rankValueCards[0].value },
-    { suit: this.suits[3].symbol, rank: this.rankValueCards[1].rank, value: this.rankValueCards[1].value },
-    { suit: this.suits[3].symbol, rank: this.rankValueCards[2].rank, value: this.rankValueCards[2].value },
-    { suit: this.suits[3].symbol, rank: this.rankValueCards[3].rank, value: this.rankValueCards[3].value },
-    { suit: this.suits[3].symbol, rank: this.rankValueCards[4].rank, value: this.rankValueCards[4].value },
-    { suit: this.suits[3].symbol, rank: this.rankValueCards[5].rank, value: this.rankValueCards[5].value },
-    { suit: this.suits[3].symbol, rank: this.rankValueCards[6].rank, value: this.rankValueCards[6].value },
-    { suit: this.suits[3].symbol, rank: this.rankValueCards[7].rank, value: this.rankValueCards[7].value },
-    { suit: this.suits[3].symbol, rank: this.rankValueCards[8].rank, value: this.rankValueCards[8].value },
-    { suit: this.suits[3].symbol, rank: this.rankValueCards[9].rank, value: this.rankValueCards[9].value },
-    { suit: this.suits[3].symbol, rank: this.rankValueCards[10].rank, value: this.rankValueCards[10].value },
-    { suit: this.suits[3].symbol, rank: this.rankValueCards[11].rank, value: this.rankValueCards[11].value },
-    { suit: this.suits[3].symbol, rank: this.rankValueCards[12].rank, value: this.rankValueCards[12].value }
-  ];
+  public cards: Card[] = [];
 
   constructor() {
+    this.generateCardList();
     this.writeNumbersToFile();
+  }
+
+  private generateCardList() {
+    for (let i = 0; i < 4; i++) {
+      for (let j = 0; j < 13; j++) {
+        this.cards.push({ suit: this.suits[i].symbol, rank: this.rankValueCards[j].rank, value: this.rankValueCards[j].value, realValue: this.rankValueCards[j].realValue });
+      }
+    }
+  }
+
+  private getHandByValidation(limit: Limits) {
+    let limitedHand: Hand = this.getOneHand();
+    let suitLimits = (this.suits.map(suit => suit.suit) as (keyof Limits)[]).filter(suit => limit[suit]?.min !== undefined && limit[suit]?.max !== undefined);
+    let attempts = 0;
+    const limitAttempts = 100000;
+
+    if (suitLimits.length > 0) {
+      while (
+        suitLimits.some(suit => {
+          const countKey = `${suit}Count` as keyof Hand;
+          if (countKey in limitedHand) {
+            return (
+              (limitedHand[countKey] as number) < (limit[suit]?.min ?? 0) ||
+              (limitedHand[countKey] as number) > (limit[suit]?.max ?? Number.POSITIVE_INFINITY)
+            );
+          }
+          else if (suit === 'points') {
+            let limitHandPoint = limitedHand.points;
+            return (
+              limitHandPoint < (limit[suit]?.min ?? 0) ||
+              limitHandPoint > (limit[suit]?.max ?? Number.POSITIVE_INFINITY)
+            );
+          }
+          return false;
+        }) && attempts < limitAttempts
+      ) {
+        limitedHand = this.getOneHand();
+        attempts++;
+      }
+    }
+    limitedHand.allCards.forEach((element) => { this.cards.splice(this.cards.findIndex(card => card.rank === element.rank && card.suit === element.suit), 1); });
+
+    if (attempts === limitAttempts) {
+      limitedHand.hearts = []
+      limitedHand.heartsCount = 0;
+      limitedHand.heartsString = limitedHand.heartsString.slice(0, 2);
+      limitedHand.diamonds = []
+      limitedHand.diamondsCount = 0;
+      limitedHand.diamondsString = limitedHand.diamondsString.slice(0, 2);
+      limitedHand.clubs = []
+      limitedHand.clubsCount = 0;
+      limitedHand.clubsString = limitedHand.clubsString.slice(0, 2);
+      limitedHand.spades = []
+      limitedHand.spadesCount = 0;
+      limitedHand.spadesString = limitedHand.spadesString.slice(0, 2);
+      limitedHand.allCards.forEach((el) => {
+        this.cards.push(el);
+      });
+      limitedHand.allCards = [];
+      limitedHand.points = 0;
+    }
+    return limitedHand;
+  }
+
+  private separateLimitsFromString(str: string) {
+    const fullLimits: { [key: string]: Limits } = {};
+    let heartsPatern = /(?<key>h[1-4]): (?<som>.+?);/gu;
+    for (const match of str.matchAll(heartsPatern)) {
+      let { key, som } = match.groups ?? {};
+      for (const elFromSomthing of som.split(', ')) {
+        let [suit, minMax] = elFromSomthing.split(': ');
+        if (minMax.includes('-')) {
+          let [min, max] = minMax.split('-');
+          if (key && suit && min && max) {
+            if (!fullLimits[key]) {
+              fullLimits[key] = {};
+            }
+            fullLimits[key][suit as keyof Limits] = { min: parseInt(min, 10), max: parseInt(max, 10) };
+          }
+        }
+      }
+    }
+    return fullLimits;
+  }
+
+  private genTable(tableLimit: string, tableName: string): Table {
+    let generatedTableLimit = this.separateLimitsFromString(tableLimit);
+    debugger
+    let fullLimit: { h1: Limits, h2: Limits, h3: Limits, h4: Limits } = { h1: {}, h2: {}, h3: {}, h4: {} };
+    Object.entries(generatedTableLimit).forEach(([key, value]) => {
+      if (key === 'h1') {
+        fullLimit.h1 = value;
+      } else if (key === 'h2') {
+        fullLimit.h2 = value;
+      } else if (key === 'h3') {
+        fullLimit.h3 = value;
+      } else if (key === 'h4') {
+        fullLimit.h4 = value;
+      }
+    });
+
+    let formatedHand1 = this.getHandByValidation(fullLimit.h1);
+
+    let formatedHand2 = this.getHandByValidation(fullLimit.h2);
+    let formatedHand3 = this.getHandByValidation(fullLimit.h3);
+    let formatedHand4 = this.getHandByValidation(fullLimit.h4);
+
+
+
+    const countT = 5;
+    let firstRow = this.generateIndentedHand(countT, formatedHand1, 'North', tableName);
+    let secondRow = this.formatTwoHandsAligned(formatedHand2, formatedHand3, (countT + 2) * 5, 'West', 'East');
+    let thirdRow = this.generateIndentedHand(countT, formatedHand4, 'South');
+    let full = `${firstRow}\n${secondRow}\n${thirdRow}`;
+
+    this.cards.push(...formatedHand1.allCards, ...formatedHand2.allCards, ...formatedHand3.allCards, ...formatedHand4.allCards);
+
+    let result: Table = {
+      formatedHand1,
+      formatedHand2,
+      formatedHand3,
+      formatedHand4,
+      firstRow,
+      secondRow,
+      thirdRow,
+      fullRow: full
+    };
+
+    return result;
   }
 
   private writeNumbersToFile() {
     import('fs').then(fs => {
-      let formatedHand1 = this.getOneHand();
-      let formatedHand2 = this.getOneHand();
-      let formatedHand3 = this.getOneHand();
-      let formatedHand4 = this.getOneHand();
+      let filterStringT1H1 = `h1: points: 0-10; h2: hearts: 4-4, clubs: 2-2; h3: spades: K10953;`;
+      for (let i = 1; i <= 10; i++) {
+        this.listTables.push(this.genTable(i === 1 ? filterStringT1H1 : '', `Table ${i}:`));
+      }
 
-      let countT = 8;
-      let firstFormatedHand = this.generateIndentedHand(countT, formatedHand1);
-      let secondFormatedHand = this.formatTwoHandsAligned(formatedHand2, formatedHand3, (countT + 2) * 5);
-      let thirdFormatedHand = this.generateIndentedHand(countT, formatedHand4);
-
-      let full = `${firstFormatedHand}\n${secondFormatedHand}\n${thirdFormatedHand}`
-
+      let full = this.listTables.map(table => table.fullRow).join('\n\n\n\n\n\n\n\n\n\n');
       fs.writeFileSync('C:/Projects/card-game-3/gen-cards/hand one.txt', full, 'utf8');
     }).catch(err => {
       console.error('FS module not available:', err);
@@ -152,12 +246,16 @@ export class App {
 
   public getOneHand(): Hand {
     let selectedCards: Card[] = [];
+    let card: Card;
     do {
-      const card = this.cards.splice(Math.floor(Math.random() * this.cards.length), 1)[0];
+      card = this.cards[Math.floor(Math.random() * this.cards.length)];
       if (card) {
         selectedCards.push(card);
       }
-    } while (selectedCards.length !== 13);
+      if (selectedCards.filter(c => c.rank === card.rank && c.suit === card.suit).length !== 1) {
+        selectedCards.splice(selectedCards.findIndex(c => c.rank === card.rank && c.suit === card.suit), 1);
+      }
+    } while (selectedCards.length !== 13 && selectedCards.filter(c => c.rank === card.rank && c.suit === card.suit).length === 1);
 
     let spades = selectedCards.filter(card => card.suit === this.suits[3].symbol);
     let hearts = selectedCards.filter(card => card.suit === this.suits[0].symbol);
@@ -166,41 +264,53 @@ export class App {
 
 
 
-    let heartsString = this.suits[0].symbol + ' ' + hearts.sort((a, b) => b.value - a.value).map(card => card.rank).join('');
-    let diamondsString = this.suits[1].symbol + ' ' + diamonds.sort((a, b) => b.value - a.value).map(card => card.rank).join('');
-    let clubsString = this.suits[2].symbol + ' ' + clubs.sort((a, b) => b.value - a.value).map(card => card.rank).join('');
-    let spadesString = this.suits[3].symbol + ' ' + spades.sort((a, b) => b.value - a.value).map(card => card.rank).join('');
+    let spadesString = this.suits[3].symbol + ' ' + spades.sort((a, b) => b.realValue - a.realValue).map(card => card.rank).join('');
+    let heartsString = this.suits[0].symbol + ' ' + hearts.sort((a, b) => b.realValue - a.realValue).map(card => card.rank).join('');
+    let diamondsString = this.suits[1].symbol + ' ' + diamonds.sort((a, b) => b.realValue - a.realValue).map(card => card.rank).join('');
+    let clubsString = this.suits[2].symbol + ' ' + clubs.sort((a, b) => b.realValue - a.realValue).map(card => card.rank).join('');
 
+    let cardPoints = selectedCards.reduce((sum, card) => sum + card.realValue, 0);
     return {
+      spades, spadesString, spadesCount: spades.length,
       hearts, heartsString, heartsCount: hearts.length,
       diamonds, diamondsString, diamondsCount: diamonds.length,
       clubs, clubsString, clubsCount: clubs.length,
-      spades, spadesString, spadesCount: spades.length
+      allCards: selectedCards,
+      points: cardPoints
     };
   }
 
-  public generateIndentedHand(countT: number, formatedHand1: FormatedHand) {
+  public generateIndentedHand(countT: number, formatedHand1: FormatedHand, handName: string, tableName?: string): string {
     let arr = Array.from({ length: countT }, (_, i) => i).map((el => { return "    "; })).join('');
-    return `${arr}${formatedHand1.heartsString}\n${arr}${formatedHand1.diamondsString}\n${arr}${formatedHand1.clubsString}\n${arr}${formatedHand1.spadesString}`
+    let result = ''
+    if (tableName) {
+      result += tableName + '\n';
+    }
+    result += `${arr}${handName} (${formatedHand1.points})\n${arr}${formatedHand1.heartsString}\n${arr}${formatedHand1.diamondsString}\n${arr}${formatedHand1.clubsString}\n${arr}${formatedHand1.spadesString}`
+    return result;
   }
 
 
-  public formatTwoHandsAligned(formatedHand1: FormatedHand, formatedHand2: FormatedHand, gap: number): string {
+  public formatTwoHandsAligned(formatedHand1: FormatedHand, formatedHand2: FormatedHand, gap: number, nameC1: string, nameC2: string): string {
     const visualLength = (str: string): number => {
       return Array.from(str).reduce((sum) => sum + 1, 0);
     }
+    nameC1 += ` (${formatedHand1.points})`;
+    nameC2 += ` (${formatedHand2.points})`;
 
     let trimmedLeftRows = [
+      nameC1,
+      formatedHand1.spadesString,
       formatedHand1.heartsString,
       formatedHand1.diamondsString,
       formatedHand1.clubsString,
-      formatedHand1.spadesString
     ].map(r => r.trim());
     const trimmedRightRows = [
+      nameC2,
+      formatedHand2.spadesString,
       formatedHand2.heartsString,
       formatedHand2.diamondsString,
       formatedHand2.clubsString,
-      formatedHand2.spadesString
     ].map(r => r.trim());
     const maxLeft = Math.max(...trimmedLeftRows.map(r => visualLength(r)));
 
