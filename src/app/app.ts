@@ -40,11 +40,11 @@ type FormatedHand = {
 }
 
 type Limits = {
-  spades?: { min?: number, max?: number },
-  hearts?: { min?: number, max?: number },
-  diamonds?: { min?: number, max?: number },
-  clubs?: { min?: number, max?: number },
-  points?: { min?: number, max?: number },
+  spades?: { min?: number, max?: number, full?: string[] },
+  hearts?: { min?: number, max?: number, full?: string[] },
+  diamonds?: { min?: number, max?: number, full?: string[] },
+  clubs?: { min?: number, max?: number, full?: string[] },
+  points?: { min?: number, max?: number, full?: string[] },
 }
 
 type Table = {
@@ -109,11 +109,89 @@ export class App {
     }
   }
 
+  private validWithLimit(
+    limitedHand: Hand,
+    limit: Limits,
+    limitedFull: { spades: Card[], hearts: Card[], diamonds: Card[], clubs: Card[] }
+  ): boolean {
+    // If no limits or no full cards specified, always valid
+    if (Object.keys(limit).length === 0 ||
+      Object.values(limitedFull).every(arr => arr.length === 0)) {
+      return true;
+    }
+
+    // Helper to check suit validity
+    const checkSuit = (suit: keyof typeof limitedFull, count: number): boolean => {
+      const required = limitedFull[suit].length;
+      if (required === 0) return true;
+      return count >= required;
+    };
+
+    const validSpades = checkSuit('spades', limitedHand.spadesCount);
+    const validHearts = checkSuit('hearts', limitedHand.heartsCount);
+    const validDiamonds = checkSuit('diamonds', limitedHand.diamondsCount);
+    const validClubs = checkSuit('clubs', limitedHand.clubsCount);
+
+    return validSpades && validHearts && validDiamonds && validClubs;
+  }
+
+  private validateWithEquals(
+    limitedHand: Hand,
+    limit: Limits,
+    limitedFull: { spades: Card[], hearts: Card[], diamonds: Card[], clubs: Card[] }
+  ): boolean {
+    if (
+      Object.keys(limit).length === 0 ||
+      Object.values(limitedFull).every(arr => arr.length === 0)
+    ) {
+      return true;
+    }
+
+    const suits: (keyof typeof limitedFull)[] = ['spades', 'hearts', 'diamonds', 'clubs'];
+    return suits.every(suit => {
+      const requiredCards = limitedFull[suit];
+      if (requiredCards.length === 0) return true;
+      const handCards = limitedHand[suit];
+      const matchedCount = requiredCards.filter(reqCard =>
+        handCards.some(card => card.rank === reqCard.rank)
+      ).length;
+      return matchedCount === requiredCards.length;
+    });
+  }
+
   private getHandByValidation(limit: Limits) {
+    let limitedFull: { spades: Card[], hearts: Card[], diamonds: Card[], clubs: Card[] } = { spades: [], hearts: [], diamonds: [], clubs: [] };
+    Object.entries(limit).forEach(([suit, value]) => {
+      if (value?.full) {
+        value.full.forEach((el) => {
+          let card = this.cards.filter(card => card.suit === this.suits[0].symbol && card.rank === el)[0];
+          if (suit === 'spades' || suit === 'hearts' || suit === 'diamonds' || suit === 'clubs') {
+            limitedFull[suit].push(card);
+          }
+        })
+      }
+    })
     let limitedHand: Hand = this.getOneHand();
     let suitLimits = (this.suits.map(suit => suit.suit) as (keyof Limits)[]).filter(suit => limit[suit]?.min !== undefined && limit[suit]?.max !== undefined);
     let attempts = 0;
-    const limitAttempts = 100000;
+    const limitAttempts = 100000 / 3;
+    while (attempts < limitAttempts) {
+      if (this.validWithLimit(limitedHand, limit, limitedFull)) {
+        break;
+      }
+      limitedHand = this.getOneHand();
+      attempts++;
+    }
+    attempts = 0;
+
+    while (attempts < limitAttempts) {
+      if (this.validateWithEquals(limitedHand, limit, limitedFull)) {
+        break;
+      }
+      limitedHand = this.getOneHand();
+      attempts++;
+    }
+    attempts = 0;
 
     if (suitLimits.length > 0) {
       while (
@@ -133,7 +211,8 @@ export class App {
             );
           }
           return false;
-        }) && attempts < limitAttempts
+        })
+        && attempts < limitAttempts
       ) {
         limitedHand = this.getOneHand();
         attempts++;
@@ -170,23 +249,40 @@ export class App {
       let { key, som } = match.groups ?? {};
       for (const elFromSomthing of som.split(', ')) {
         let [suit, minMax] = elFromSomthing.split(': ');
+        if (!fullLimits[key]) {
+          fullLimits[key] = {};
+        }
         if (minMax.includes('-')) {
           let [min, max] = minMax.split('-');
           if (key && suit && min && max) {
-            if (!fullLimits[key]) {
-              fullLimits[key] = {};
-            }
             fullLimits[key][suit as keyof Limits] = { min: parseInt(min, 10), max: parseInt(max, 10) };
           }
+        } else {
+          fullLimits[key][suit as keyof Limits] = { full: this.splitWithTen(minMax) };
         }
       }
     }
     return fullLimits;
   }
 
+  private splitWithTen(input: string): string[] {
+    const result = [];
+    result.push(input[0]);
+    const digits = input.slice(1);
+    for (let i = 0; i < digits.length; i++) {
+      if (digits[i] === '1' && digits[i + 1] === '0') {
+        result.push('10');
+        i++;
+      } else {
+        result.push(digits[i]);
+      }
+    }
+    return result;
+  }
+
+
   private genTable(tableLimit: string, tableName: string): Table {
     let generatedTableLimit = this.separateLimitsFromString(tableLimit);
-    debugger
     let fullLimit: { h1: Limits, h2: Limits, h3: Limits, h4: Limits } = { h1: {}, h2: {}, h3: {}, h4: {} };
     Object.entries(generatedTableLimit).forEach(([key, value]) => {
       if (key === 'h1') {
@@ -201,7 +297,6 @@ export class App {
     });
 
     let formatedHand1 = this.getHandByValidation(fullLimit.h1);
-
     let formatedHand2 = this.getHandByValidation(fullLimit.h2);
     let formatedHand3 = this.getHandByValidation(fullLimit.h3);
     let formatedHand4 = this.getHandByValidation(fullLimit.h4);
@@ -232,7 +327,7 @@ export class App {
 
   private writeNumbersToFile() {
     import('fs').then(fs => {
-      let filterStringT1H1 = `h1: points: 0-10; h2: hearts: 4-4, clubs: 2-2; h3: spades: K10953;`;
+      let filterStringT1H1 = `h1: spades: K10953; h2: points: 0-10; h3: hearts: 4-4, clubs: 2-2;`;
       for (let i = 1; i <= 10; i++) {
         this.listTables.push(this.genTable(i === 1 ? filterStringT1H1 : '', `Table ${i}:`));
       }
